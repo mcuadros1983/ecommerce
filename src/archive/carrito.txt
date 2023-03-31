@@ -1,0 +1,28 @@
+[
+  {
+    "id": 1,
+    "timestamp": "29/1/2023",
+    "productos": [
+      {
+        "id": 1,
+        "timestamp": "29/1/2023",
+        "nombre": "producto1",
+        "descripcion": "descripcion producto1",
+        "codigo": 1,
+        "thumbnail": "foto1",
+        "precio": 100,
+        "stock": 1000
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "timestamp": "29/1/2023",
+    "productos": []
+  },
+  {
+    "id": 3,
+    "timestamp": "29/1/2023",
+    "productos": []
+  }
+]
