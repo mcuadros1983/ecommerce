@@ -11,7 +11,7 @@ const transporter = createTransport({
 
 const sendMailTo = async (to, subject, text) => {
   const mailOptions = {
-    from: process.env.NODEMAILER_FROM || "Tiendita",
+    from: process.env.NODEMAILER_FROM || "Mi Tienda",
     to,
     subject,
     text,

@@ -1,12 +1,13 @@
 import { Router } from "express"; 
-import {getProducts, addProduct, updateProduct, deleteProduct} from "../controllers/productosControllers.js"
+import {getProducts, getProductsByCategoryName, addProduct, updateProduct, deleteProduct} from "../controllers/productosControllers.js"
 const productRouter = Router();
 
 // GET /productos/:id?
 productRouter.get("/id?", getProducts)
 
-// GET /productos/:id
-// productRouter.get("/:id", getProductsById)
+
+// GET /productos/categoria/:category
+productRouter.get("/categoria/:category", getProductsByCategoryName);
 
 // POST /productos/
 productRouter.post("/", addProduct)

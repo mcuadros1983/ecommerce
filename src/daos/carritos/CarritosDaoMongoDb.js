@@ -41,7 +41,7 @@ class CarritosDaoMongoDb extends ContenedorMongoDb {
           throw new Error(err?.message);
         }
       }
-
+      
     async deleteProductByCartId(cart_id, product_id) {
         try {
             const { products } = await this.collection.findOne(

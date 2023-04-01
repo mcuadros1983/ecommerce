@@ -3,7 +3,7 @@ import ContenedorMongoDb from "../../contenedores/ContenedorMongoDb.js"
 
 class OrdenDaoMongoDb extends ContenedorMongoDb {
     constructor() {
-        super('orden', orderSchema)
+        super('ordenes', orderSchema)
     }
 
     async getAllOrdersByBuyerEmail(buyer_email) {

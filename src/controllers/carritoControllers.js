@@ -1,9 +1,8 @@
 import { carritosDao, productosDao } from "../daos/index.js";
 import { logger } from "../utils/index.js";
-//import { productosDao } from "../daos/index.js";
 
 // GET /carrito/:id/productos
-const getProductsOfaCart = async (req, res) => { 
+const getProductsOfaCart = async (req, res) => {
     try {
         let { id } = req.params;
         carritosDao.getById(id).then(item => {
@@ -18,9 +17,10 @@ const getProductsOfaCart = async (req, res) => {
                 logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
                 res.status(200).render("./pages/cart.ejs", {
                     products: item.payload.products,
-                    cartId: item._id,
+                    cartId: req.cookies.cartIdCookie,
                     cartTotal: item.total,
-                    userId: req.user._id
+                    categories: req.cookies.categoriesCookie,
+                    userId: req.cookies.userIdCookie
                 });
             }
         })
@@ -48,7 +48,6 @@ const createCart = async (req, res) => {
     } else {
         carritosDao.save(body).then(item => {
             if (item.status === 'Error') {
-                //res.status(404).json(item.message);
                 res.status(500);
                 logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
                 res.render("./pages/error.ejs", {
@@ -56,7 +55,6 @@ const createCart = async (req, res) => {
                     message: item.message,
                 });
             } else {
-                //res.status(201).json({ id: JSON.stringify(item.id) })
                 res.status(201)
                 logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
                 res.json({ newCartId: item._id });
@@ -67,45 +65,45 @@ const createCart = async (req, res) => {
 
 const createProductOfACart = async (req, res) => {
     try {
-      const {
-        params: { id, id_prod },
-      } = req;
-      const product = await productosDao.getById(id_prod);
-      const cart = await carritosDao.getById(id);
-      if (!product.payload) {
-        res.status(404);
-        logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
-        res.render("./pages/error.ejs", {
-          code: 404,
-          message: "Producto no encontrado",
-        });
-        if (!cart.payload) {
-          res.status(404);
-          logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
-          res.render("./pages/error.ejs", {
-            code: 404,
-            message: "Carrito no encontrado",
-          });
+        const {
+            params: { id, id_prod },
+        } = req;
+        const product = await productosDao.getById(id_prod);
+        const cart = await carritosDao.getById(id);
+        if (!product.payload) {
+            res.status(404);
+            logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+            res.render("./pages/error.ejs", {
+                code: 404,
+                message: "Producto no encontrado",
+            });
+            if (!cart.payload) {
+                res.status(404);
+                logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+                res.render("./pages/error.ejs", {
+                    code: 404,
+                    message: "Carrito no encontrado",
+                });
+            }
         }
-      }
-      await carritosDao.createProductOfACart(id, product);
-      res.status(302);
-      logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
-      res.redirect(`/carrito/${id}/productos`);
+        await carritosDao.createProductOfACart(id, product);
+        res.status(302);
+        logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+        res.redirect(`/carrito/${id}/productos`);
     } catch (err) {
-      res.status(500);
-      logger.warn(`${req.method} ${req.originalUrl} ${res.statusCode}`);
-      res.render("./pages/error.ejs", {
-        code: 500,
-        message: "Internal Server Error",
-      });
+        res.status(500);
+        logger.warn(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+        res.render("./pages/error.ejs", {
+            code: 500,
+            message: "Internal Server Error",
+        });
     }
-  }
+}
 
 // DELETE /carrito/:id
 const deleteCartById = async (req, res) => {
     let { id } = req.params;
-    carritosDao.deleteById(id).then(item => {
+    carritosDao.deleteCartById(id).then(item => {
         if (item.status === 'Error') {
             res.status(500);
             logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
@@ -123,20 +121,38 @@ const deleteCartById = async (req, res) => {
 
 // DELETE /carrito/:id/productos/:id_prod
 const deleteProductByCartId = async (req, res) => {
-    const { id, id_prod } = req.params;
-    carritosDao.deleteProductByIdCart(id, id_prod).then(item => {
-        if (item.status == 'Error') {
-            res.status(500);
+    try {
+        const { params: { id, id_prod } } = req;
+        const product = await productosDao.getById(id_prod);
+        const cart = await carritosDao.getById(id);
+        if (!product.payload) {
+            res.status(404);
             logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
             res.render("./pages/error.ejs", {
-                code: 500,
-                message: item.message,
+                code: 404,
+                message: "Product Not Found",
             });
-        } else {
-            logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
-            return res.status(302).redirect(`/carrito/${id}/productos`);
+            if (!cart.payload) {
+                res.status(404);
+                logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+                res.render("./pages/error.ejs", {
+                    code: 404,
+                    message: "Cart Not Found",
+                });
+            }
         }
-    })
+        await carritosDao.deleteProductByCartId(id, id_prod);
+        res.status(302);
+        logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+        res.redirect(`/carrito/${id}/productos`);
+    } catch (err) {
+        res.status(500);
+        logger.warn(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+        res.render("./pages/error.ejs", {
+            code: 500,
+            message: err?.message,
+        });
+    }
 }
 
 export { getProductsOfaCart, createCart, createProductOfACart, deleteCartById, deleteProductByCartId }

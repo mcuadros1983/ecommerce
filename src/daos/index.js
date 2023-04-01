@@ -20,12 +20,14 @@ import { ProductosDaoMongoDb } from "./productos/ProductosDaoMongoDb.js";
 import { CarritosDaoMongoDb } from "./carritos/CarritosDaoMongoDb.js"
 import { UsuarioDaoMongoDb } from "./usuario/UsuarioDaoMongoDb.js";
 import { OrdenDaoMongoDb } from "./orden/OrdenDaoMongoDb.js";
+import { CategoriaDaoMongoDb } from "./categorias/CategoriasDaoMongoDb.js";
 
 
 let productosDao;
 let carritosDao;
 let usuariosDao;
 let ordenDao;
+let categoriasDao;
 
 const PERS = process.env.PERS || "mongoDb";
 
@@ -41,7 +43,6 @@ switch (PERS) {
     break;
 
   case "firebase":
-    //connectFirebase()
     productosDao = new ProductosDaoFirebase();
     carritosDao = new CarritosDaoFirebase();
     break;
@@ -52,7 +53,9 @@ switch (PERS) {
     carritosDao = new CarritosDaoMongoDb();
     usuariosDao = new UsuarioDaoMongoDb();
     ordenDao = new OrdenDaoMongoDb();
+    categoriasDao = new CategoriaDaoMongoDb();
+
     break;
 }
 
-export { productosDao, carritosDao, usuariosDao, ordenDao };
+export { productosDao, carritosDao, usuariosDao, ordenDao, categoriasDao };

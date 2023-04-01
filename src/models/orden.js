@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-//import { model, Schema } from "mongoose";
 import productSchema from "./productos.js";
 
 const PurchaseDateSchema = new mongoose.Schema({
@@ -21,9 +20,5 @@ const orderSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-//const Order = model("Order", OrderSchema);
-
-//export { Order, OrderSchema };
 
 export default orderSchema

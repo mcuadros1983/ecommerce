@@ -1,6 +1,6 @@
 
 import { usuariosDao, carritosDao } from "../daos/index.js";
-import { logger, sendMailTo } from "../utils/index.js";
+import { logger, sendMailTo} from "../utils/index.js";
 import bcrypt from "bcrypt";
 
 const renderLoginView = (req, res) => {
@@ -35,7 +35,7 @@ const renderRegisterView = (req, res) => {
 
 const getUserById = async (req, res) => {
     try {
-        const { user: { _id } } = req;
+        const _id = req.cookies.userIdCookie
         await usuariosDao.getById(_id).then(item => {
             if (item.status === "Error") {
                 res.status(500);
@@ -47,18 +47,21 @@ const getUserById = async (req, res) => {
             } else {
                 res.status(200)
                 logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
-                res.render("./pages/user.ejs", { user: item.payload, cartId: item.payload.cart_id });
+                res.render("./pages/user.ejs", {
+                    user: item.payload,
+                    cartId: item.payload.cart_id,
+                    categories: req.cookies.categoriesCookie,
+                    userId: req.cookies.userIdCookie,
+                });
             }
         })
     } catch (error) {
-        res.status(200)
-        logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
-        res.render("./pages/user.ejs", { 
-            user: item.payload, 
-            cartId: item.payload.cart_id,
-            userId: req.user._id    
+        res.status(500);
+        logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+        res.render("./pages/error.ejs", {
+            code: 500,
+            message: "Internal Server Error",
         });
-        console.log("text1", item.payload, item.payload.cart_id)
     }
 }
 
@@ -100,16 +103,16 @@ const createUser = async (req, res) => {
                 };
                 console.log("newuser", userCart)
                 await usuariosDao.save(newUser);
-                // await sendMailTo(
-                //     process.env.ADMIN_MAIL,
-                //     "Nuevo registro de usuario",
-                //     "Se ha registrado un nuevo usuario."
-                // );
-                // client.messages.create({
-                //     body: "Se ha registrado un nuevo usuario.",
-                //     from: process.env.TWILIO_PHONE,
-                //     to: process.env.ADMIN_PHONE,
-                // });
+                await sendMailTo(
+                    process.env.ADMIN_MAIL,
+                    "Nuevo registro de usuario",
+                    "Se ha registrado un nuevo usuario."
+                );
+                client.messages.create({
+                    body: "Se ha registrado un nuevo usuario.",
+                    from: process.env.TWILIO_PHONE,
+                    to: process.env.ADMIN_PHONE,
+                });
 
                 res.status(302)
                 logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
@@ -124,18 +127,33 @@ const createUser = async (req, res) => {
 }
 
 const logout = async (req, res) => {
-    req.logout((err) => {
-        if (err) {
-            res.status(500);
-            logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
-            res.render("./pages/error.ejs", {
-                code: 500,
-                message: "Internal Server Error",
-            });
-        }
+    try {
+        res.status(302);
         logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
-        res.status(302).redirect("/");
-    });
+        res
+            .clearCookie("cartIdCookie")
+            .clearCookie("categoriesCookie")
+            .clearCookie("userIdCookie")
+        req.logout((err) => {
+            if (err) {
+                res.status(500);
+                logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+                res.render("./pages/error.ejs", {
+                    code: 500,
+                    message: "Internal Server Error",
+                });
+            }
+            logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+            res.redirect("/");
+        });
+    } catch (err) {
+        res.status(500);
+        logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+        res.render("./pages/error.ejs", {
+            code: 500,
+            message: "Internal Server Error",
+        });
+    }
 }
 
 

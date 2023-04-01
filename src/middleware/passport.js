@@ -1,4 +1,3 @@
-//import User from "../models/User.js";
 import { usuariosDao } from "../daos/index.js";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";

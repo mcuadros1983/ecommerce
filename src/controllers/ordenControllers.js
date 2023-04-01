@@ -2,18 +2,17 @@ import { ordenDao, carritosDao, usuariosDao } from "../daos/index.js";
 import { logger, sendMailTo } from "../utils/index.js";
 
 const getAllOrdersByBuyerEmail = async (req, res) => {
-    try { 
+    try {
         const { email } = req.user;
-        const { payload } = await usuariosDao.getById(req.user._id);
-        const { cart_id } = payload
         const ordenes = await ordenDao.getAllOrdersByBuyerEmail(email)
         if (ordenes) {
             res.status(200);
             logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
             res.render("./pages/order.ejs", {
                 orders: ordenes,
-                cartId: cart_id,
-                userId: req.user._id
+                cartId: req.cookies.cartIdCookie,
+                categories: req.cookies.categoriesCookie,
+                userId: req.cookies.userIdCookie,
             });
         } else {
             res.status(404);
@@ -46,8 +45,9 @@ const getOrderById = async (req, res) => {
                 logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
                 res.render("./pages/single-order.ejs", {
                     order: item.payload,
-                    cartId: cart_id,
-                    userId: req.user._id,
+                    cartId: req.cookies.cartIdCookie,
+                    categories: req.cookies.categoriesCookie,
+                    userId: req.cookies.userIdCookie,
                 });
             }
             logger.error(`${req.method} ${req.originalUrl} ${res.statusCode}`);
@@ -98,16 +98,16 @@ const createOrder = async (req, res) => {
 
             sendMailTo(
                 newOrder.payload.buyer_email,
-                "Compraste en Tiendita",
+                "Compraste en Mi Tienda",
                 `Tu compra se ha realizado correctamente. Tu número de orden es ${newOrder.payload._id}`
             );
             res.status(200);
             logger.http(`${req.method} ${req.originalUrl} ${res.statusCode}`);
             res.render("./pages/single-order.ejs", {
                 purchase_date: newOrder.payload.purchase_date,
-                order: newOrder.payload,
-                cartId: payload.cart_id,
-                userId: req.user._id,
+                cartId: req.cookies.cartIdCookie,
+                categories: req.cookies.categoriesCookie,
+                userId: req.cookies.userIdCookie,
             });
         } catch (err) {
             res.status(500);
